@@ -1,1 +1,1 @@
-https://nomeattoday.app
+https://nomeato.app

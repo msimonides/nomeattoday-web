@@ -2,7 +2,7 @@
 ---
 # Privacy Policy
 
-By using the No Meat Today app (the "App") you consent to the collection and
+By using the No Meato app (the "App") you consent to the collection and
 processing of data concerning your use of the App in accordance with this
 privacy policy.
 
@@ -47,8 +47,8 @@ following third party services:
 
 The policy may be modified at any time to reflect changes in the app. Any changes will be posted to this page.
 
-This policy was last modified on September 19, 2021.
+This policy was last modified on April 12, 2022.
 
 ## Contact
 
-You can contact the author at info@nomeattoday.app
+You can contact the author at info@nomeato.app
