@@ -1,7 +1,14 @@
-<!DOCTYPE html/>
+<!DOCTYPE html>
 <head>
-<title>No Meato</title>
+<title>No Meato - an app to help you eat less meat</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css" integrity="sha512-EZLkOqwILORob+p0BXZc+Vm3RgJBOe1Iq/0fiI7r/wJgzOFZMlsqTa29UEl6v6U6gsV4uIpsNZoV32YZqrCRCQ==" crossorigin="anonymous" referrerpolicy="no-referrer">
+<meta name="description" content="Reduce meat consumption by introducing meatless days of the week. Get gentle reminders and track yout progress.">
+<meta name="og:title" content="No Meato - an app to help you eat less meat">
+<meta name="og:image" content="https://nomeato.app/header.webp">
+<meta name="og:description" content="Reduce meat consumption by introducing meatless days of the week. Get gentle reminders and track yout progress.">
+<meta name="og:url" content="https://nomeato.app/">
+<meta name="twitter:card" content="summary_large_image">
 <style>
 @font-face {
   font-family: 'Cyrulik-Sharp';
@@ -9,52 +16,283 @@
 }
 
 html {
-  background-color: #000000;
-  color: #f9f9f9;
+  background-color: #ffffff;
+  color: #080808;
   margin: 0;
+  margin-top: 5rem;
   padding: 0;
 }
-body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
+
+h1 {
+  font-family: 'Cyrulik-Sharp';
+  font-weight: normal;
+  text-align: center;
+  margin-bottom: 0rem;
+}
+
+.container {
+  max-width: 1100px;
+}
+
+.logo {
+  margin: 4rem auto;
+}
+
+.info-item {
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-video {
-  flex: auto;
-  display: block;
-  max-width: 100%;
-  margin: 3em auto;
-}
-h1 {
-  font-family: 'Cyrulik-Sharp';
-  font-size: 32pt;
-  font-weight: normal;
+.info-item .caption {
+  font-size: 120%;
   text-align: center;
-  margin-bottom: 5vh;
+  margin-top: 5rem;
+  transition: all 1s ease-in-out;
+  transform-origin: center 65%;
+  padding: 0 15%;
 }
-a#download_badge {
-  margin: auto;
+
+.info-item.selected .caption {
+  transform: scale(1.4);
+  transition: all 0.25s cubic-bezier(0.375, 0.1, 0.2, 1.5);
 }
-a#download_badge img {
-  min-height: 50px;
-  max-height: 100px;
-  height: 10vh;
+
+.info-item video {
+  width: 100%;
+  max-width: 70vw;
+  max-height: 90vh;
+  margin: 0 auto;
+  display: block;
+  object-position: top center;
+}
+
+#download_badge {
+  margin: 3rem auto;
+  text-align: center;
+}
+
+#download_badge img {
+  height: 80px;
+}
+
+@media (min-width: 550px) {
+  h1 {
+    margin-bottom: 4rem;
+  }
+
+  .info-item {
+    flex-direction: column-reverse;
+  }
+
+  .info-item video {
+    aspect-ratio: 720/840;
+  }
+
+  .info-item .caption {
+    margin-top: 2rem;
+  }
 }
 
 </style>
 </head>
-<body>
+<body class="container">
 
-<video height="200" autoplay loop muted>
-  <source src="cow_in_pot.mp4" type="video/mp4">
-  <source src="cow_in_pot.webm" type="video/webm">
-</video>
+  <div class="row logo">
+    <img class="eight columns offset-by-two" src="header.webp" alt="No Meato">
+  </div>
 
-<a id="download_badge" href='https://play.google.com/store/apps/details?id=com.studio4plus.nomeattoday&utm_source=website'>
-  <img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'/>
-</a>
+  <h1 class="row">
+    An app to help you eat less meat
+  </h1>
 
+  <div class="row">
+    <div class="one-third column info-item">
+      <div class="caption">1. Select meatless days</div>
+      <video src="meatless_days.mp4" preload="auto" playsinline muted></video>
+    </div>
+    <div class="one-third column info-item">
+      <div class="caption">2. Get silent notifications</div>
+      <video src="notifications.mp4" preload="auto" playsinline muted></video>
+    </div>
+    <div class="one-third column info-item">
+      <div class="caption">3. Track progress</div>
+      <video src="track_progress.mp4" preload="auto" playsinline muted></video>
+    </div>
+  </div>
+
+  <div id="download_badge">
+    <a class="install" href='https://play.google.com/store/apps/details?id=com.studio4plus.nomeattoday&utm_source=website'>
+      <img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'/>
+    </a>
+  </div>
+
+  <script>
+    var currentItemIndex = -1
+    var lastItemIndex = -1
+    var currentItemAbortController = null
+
+    function log(message) {
+      if (console && console.log) console.log(message)
+    }
+
+    function updateAnimations(wasAborted) {
+      const items = Array.from(document.querySelectorAll('.info-item'))
+      if (currentItemIndex >= 0 && shouldStop(items[currentItemIndex]) && !currentItemAbortController.signal.aborted) {
+        log("Abort current item: " + currentItemIndex)
+        currentItemAbortController.abort()
+        return // TODO: write this differently
+      }
+
+      if (currentItemIndex < 0) {
+        if (lastItemIndex + 1 < items.length && canPlay(items[lastItemIndex + 1])) {
+          currentItemIndex = lastItemIndex + 1
+        } else {
+          const firstPlayableIndex = items.findIndex(item => canPlay(item.querySelector('video')))
+          currentItemIndex = firstPlayableIndex
+        }
+
+        if (currentItemIndex >= 0) {
+          currentItemAbortController = new AbortController()
+          const currentItem = items[currentItemIndex]
+          const resetItems = currentItemIndex <= lastItemIndex ? items : []
+          log("Play item: " + currentItemIndex + ", with reset: " + (resetItems.length > 0))
+          playItem(currentItem, resetItems, !wasAborted, currentItemAbortController.signal)
+        }
+      }
+    }
+
+    async function playItem(currentItem, resetItems, delayReset, abortSignal) {
+      try {
+        var isAborted = false
+        if (resetItems.length > 0) {
+          if (delayReset) await delay(3000, abortSignal)
+          resetItems.forEach(it => it.querySelector('video').currentTime = 0)
+          if (delayReset) await delay(500, abortSignal)
+        }
+
+        const currentVideo = currentItem.querySelector('video')
+
+        currentItem.classList.add("selected")
+        await delay(500, abortSignal)
+        await playTillEnd(currentVideo, abortSignal)
+        await delay(2000, abortSignal)
+        currentItem.classList.remove("selected")
+        await delay(500, abortSignal)
+      } catch (e) {
+        if (e == "abort") {
+          log("! aborting item " + currentItemIndex)
+          isAborted = true
+        } else {
+          throw e
+        }
+      } finally {
+        log("Finished item " + currentItemIndex)
+        currentItem.classList.remove("selected")
+        lastItemIndex = currentItemIndex
+        currentItemIndex = -1
+        currentItemAbortSignal = null
+        setTimeout(() => { updateAnimations(isAborted) }, 10)
+      }
+    }
+  
+    async function playTillEnd(video, abortSignal) {
+      try {
+        await video.play()
+        await playbackEnded(video, abortSignal)
+      } catch (error) {
+        if (error != "abort") {
+          log("error: " + error)
+          delay(3000, abortSignal)
+        } else {
+          throw error
+        }
+      }
+    }
+
+    function playbackEnded(video, abortSignal) {
+      return new Promise((resolve, reject) => {
+        const eventListener = function() {
+          video.removeEventListener("ended", eventListener)
+          log("finishing playback")
+          resolve()
+        }
+        video.addEventListener("ended", eventListener)
+        abortSignal.addEventListener("abort", () => {
+          log("aborting playback")
+          video.pause()
+          reject("abort")
+        })
+      })
+    }
+
+    function delay(timeMs, abortSignal) {
+      return new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(resolve, timeMs)
+        if (abortSignal) {
+          abortSignal.addEventListener("abort", () => {
+            clearTimeout(timeoutId)
+            reject("abort")
+          })
+        }
+      })
+    }
+
+    function canPlay(element) {
+      return visibleRatio(element) >= 0.95
+    }
+
+    function shouldStop(element) {
+      return visibleRatio(element) < 0.85
+    }
+
+    function visibleRatio(element) {
+      const bounds = element.getBoundingClientRect();
+      const visibleTop = Math.max(0, bounds.top)
+      const visibleBottom = Math.min(Math.max(0, bounds.bottom), window.innerHeight)
+      const visibleHeight = visibleBottom - visibleTop
+      return visibleHeight / bounds.height
+    }
+    
+    function utm_source() {
+      if (!URLSearchParams) return
+
+      const params = new URLSearchParams(window.location.search)
+      var source = 'website'
+      if (params.has('utm_source')) {
+        source += '-' + params.get('utm_source')
+      }
+
+      document.querySelectorAll('a.install').forEach((a) => {
+        const link = a.href
+        const paramsIndex = link.indexOf('?')
+        if (paramsIndex > 0) {
+          const paramsString = link.substr(paramsIndex + 1)
+          const linkParams = new URLSearchParams(paramsString)
+          linkParams.set('utm_source', source)
+          a.href = link.substr(0, paramsIndex + 1) + linkParams
+        }
+      })
+    }
+
+    function onready() {
+      utm_source()
+    }
+
+    function init() {
+      const firstVideo = document.querySelector('.info-item video')
+      const startAnimations = async function() {
+        firstVideo.removeEventListener("canplay", startAnimations)
+        await delay(2000)
+        updateAnimations()
+      }
+      firstVideo.addEventListener("canplay", startAnimations)
+      document.addEventListener("scroll", () => updateAnimations(false))
+      window.addEventListener("resize", () => updateAnimations(false))
+      window.addEventListener("DOMContentLoaded", onready)
+    }
+    
+    init()
+
+  </script>
 </body>
